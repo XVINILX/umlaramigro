@@ -1,0 +1,75 @@
+# docker-compose.yml
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: umlaramigo-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: umlaramigo
+      MONGO_INITDB_ROOT_PASSWORD: umlaramigo_password
+      MONGO_INITDB_DATABASE: umlaramigo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mongo-network
+    restart: unless-stopped
+  db:
+    image: postgres:15
+    container_name: umlaramigo-db
+    environment:
+      POSTGRES_DB: umlaramigo
+      POSTGRES_USER: umlaramigo
+      POSTGRES_PASSWORD: umlaramigo_password
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U umlaramigo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - postgres-network
+
+  api:
+    build: .
+    container_name: umlaramigo-api-postgres
+    command: python run.py
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://umlaramigo:umlaramigo_password@db:5432/umlaramigo
+      MONGODB_URL: mongodb://umlaramigo:umlaramigo_password@mongodb:27017/umlaramigo?authSource=admin
+      REPOSITORY_BACKEND: mongodb
+      SECRET_KEY: your-secret-key-change-in-production
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+    depends_on:
+      db:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app
+      - ./logs:/app/logs
+    networks:
+      - postgres-network
+      - mongo-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  mongodb_data:
+
+networks:
+  postgres-network:
+    driver: bridge
+  mongo-network:
+    driver: bridge
