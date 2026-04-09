@@ -1,3 +1,4 @@
+import logging
 from typing import Optional, List, Tuple
 from datetime import datetime
 from bson import ObjectId
@@ -240,13 +241,14 @@ class MongoDBOrganizationRepository(IOrganizationRepository):
             return await self.get_by_id(org_id)
 
         try:
-            result = await self.collection.update_one(
+            result = self.collection.update_one(
                 {"_id": ObjectId(str(org_id))},
                 {"$set": update_data}
             )
             if result.matched_count == 0:
                 return None
-        except Exception:
+        except Exception as err:
+            logging.error(f"Erro ao atualizar organização: {err}", exc_info=True)
             return None
 
         return await self.get_by_id(org_id)

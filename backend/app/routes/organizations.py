@@ -62,7 +62,7 @@ async def get_organization(
 
 @router.put("/{org_id}", response_model=OrganizationResponse)
 async def update_organization(
-    org_id: int,
+    org_id: str,
     org_update: OrganizationUpdate,
     current_user: User = Depends(get_current_user),
     org_repo: IOrganizationRepository = Depends(get_organization_repository),
