@@ -1,48 +1,41 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Index, Boolean
-from sqlalchemy.orm import relationship
+from dataclasses import dataclass, field
 from datetime import datetime
-from app.core.database import Base
+from typing import Optional
 
-class InterestForm(Base):
-    __tablename__ = "interest_forms"
-    
-    # Índices compostos para queries comuns
-    __table_args__ = (
-        Index('ix_interest_forms_user_pet', 'user_id', 'pet_id'),  # Evita duplicatas
-        Index('ix_interest_forms_pet_created', 'pet_id', 'created_at'),  # Para listar por pet
-        Index('ix_interest_forms_user_created', 'user_id', 'created_at'),  # Para listar por user
-        Index('ix_interest_forms_status_created', 'status', 'created_at'),  # Para filtros
-    )
+from app.models.pet import Pet
+from app.models.user import User
 
-    id = Column(Integer, primary_key=True, index=True)
-    full_name = Column(String, nullable=False)  # NOT NULL
-    phone = Column(String, nullable=True, index=True)  # Adicionado index para busca
-    email = Column(String, nullable=True, index=True)  # ADICIONADO - campo essencial para contato
-    message = Column(Text,nullable=True)  # ADICIONADO - para mensagem do interessado
+
+@dataclass
+class InterestForm:
+    """
+    Entidade de domínio: Formulário de interesse em adotar.
     
-    # Foreign keys com CASCADE apropriado
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=True)  # NULL permitido para não-logados
-    pet_id = Column(Integer, ForeignKey("pets.id", ondelete="CASCADE"), index=True, nullable=False)  # NOT NULL
+    Índices recomendados para MongoDB:
+    - (user_id, pet_id): Evita duplicatas de interesse do mesmo usuário no mesmo pet
+    - (pet_id, created_at): Para listar formulários por pet, mais recentes primeiro
+    - (user_id, created_at): Para listar formulários do usuário
+    - (status, created_at): Para filtrar por status de processamento
+    """
     
-    # Status para workflow
-    status = Column(String, default="pending", index=True)  # pending, contacted, adopted, rejected
-    contact_date = Column(DateTime, nullable=True)  # Quando foi contatado
-    notes = Column(Text, nullable=True)  # Notas internas
+    id: Optional[str] = None  # MongoDB ObjectId as string
+    full_name: str = ""
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    message: Optional[str] = None
     
-    created_at = Column(DateTime, default=datetime.utcnow, index=True)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    # Referências a outras entidades
+    user_id: Optional[str] = None  # MongoDB ObjectId as string (pode ser None para não-logados)
+    pet_id: Optional[str] = None   # MongoDB ObjectId as string (obrigatório)
     
-    # Relacionamentos otimizados
-    user = relationship(
-        "User", 
-        back_populates="interest_forms",
-        lazy="selectin",  # Muda de 'select' para 'selectin'
-        foreign_keys=[user_id]
-    )
+    # Status do processamento da solicitação
+    status: str = "pending"  # pending, contacted, adopted, rejected
+    contact_date: Optional[datetime] = None
+    notes: Optional[str] = None  # Notas internas
     
-    pet = relationship(
-        "Pet", 
-        back_populates="interest_forms",
-        lazy="selectin",  # Muda de 'select' para 'selectin'
-        foreign_keys=[pet_id]
-    )
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    
+    # Relacionamentos (carregados quando necessário)
+    user: Optional['User'] = None
+    pet: Optional['Pet'] = None

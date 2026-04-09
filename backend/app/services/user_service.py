@@ -1,14 +1,27 @@
-from sqlalchemy.orm import Session
 from app.core import verify_password
 from app.models import User
 from app.schemas import UserCreate, UserUpdate
 from app.repositories import IUserRepository
+from app.schemas.user import UserResponse
 
 
 class UserService:
     def __init__(self, user_repo: IUserRepository):
         self.user_repo = user_repo
 
+    async def register_user(self, user_data: UserCreate) -> UserResponse:
+        """
+        Register a new user with business validation.
+        Raises:
+            ValueError: If email is already registered
+        """
+        # Verificação de email duplicado
+        existing_user = await self.user_repo.get_by_email(user_data.email)
+        if existing_user:
+            raise ValueError("Email already registered")
+        
+        return await self.create_user(user_data)
+    
     async def create_user(self, user: UserCreate) -> User:
         return await self.user_repo.create(user)
 

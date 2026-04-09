@@ -33,7 +33,8 @@ async def create_organization(
 async def list_organizations(org_repo: IOrganizationRepository = Depends(get_organization_repository)):
     """List all organizations."""
     org_service = OrganizationService(org_repo)
-    return await org_service.list_organizations()
+    lista_de_organizacoes = await org_service.list_organizations()
+    return lista_de_organizacoes
 
 @router.get("/my-organizations", response_model=list[OrganizationResponseWithPets])
 async def my_organizations(

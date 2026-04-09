@@ -45,7 +45,6 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://umlaramigo:umlaramigo_password@db:5432/umlaramigo
       MONGODB_URL: mongodb://umlaramigo:umlaramigo_password@mongodb:27017/umlaramigo?authSource=admin
       REPOSITORY_BACKEND: mongodb
       SECRET_KEY: your-secret-key-change-in-production

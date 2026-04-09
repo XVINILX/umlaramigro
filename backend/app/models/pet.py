@@ -1,41 +1,33 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum as SQLEnum, Index
-from sqlalchemy.orm import relationship
+from dataclasses import dataclass, field
 from datetime import datetime
-import enum
-from app.core.database import Base
+from enum import Enum
+from typing import Optional, List
 
-class PetTypeEnum(str, enum.Enum):
+
+class PetType(str, Enum):
+    """Tipos de animais suportados."""
     DOG = "dog"
     CAT = "cat"
 
-class Pet(Base):
-    __tablename__ = "pets"
-    
-    # Índices compostos para queries comuns
-    __table_args__ = (
-        Index('idx_organization_created', 'organization_id', 'created_at'),
-        Index('idx_type_created', 'pet_type', 'created_at'),
-        Index('idx_organization_type', 'organization_id', 'pet_type'),
-    )
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    pet_type = Column(SQLEnum(PetTypeEnum), default=PetTypeEnum.DOG, index=True)  # Adicionado index
-    description = Column(String)
-    organization_id = Column(Integer, ForeignKey("organizations.id"), index=True, nullable=False)  # NOT NULL
-    created_at = Column(DateTime, default=datetime.utcnow, index=True)  # Adicionado index
+@dataclass
+class Pet:
+    """
+    Entidade de domínio: Animal de estimação.
     
-    # Relacionamentos com lazy loading explícito
-    organization = relationship(
-        "Organization", 
-        back_populates="pets",
-        lazy="selectin"  # MUDEI de 'select' para 'selectin' - carrega em batch
-    )
+    Índices recomendados para MongoDB:
+    - (organization_id, created_at): Para listar pets por organização
+    - (pet_type, created_at): Para filtrar por tipo de animal
+    - (organization_id, pet_type): Para buscar tipo específico em organização
+    """
     
-    interest_forms = relationship(
-        "InterestForm", 
-        back_populates="pet", 
-        cascade="all, delete-orphan",
-        lazy="selectin",  # MUDEI para 'selectin' - evita N+1
-        order_by="InterestForm.created_at.desc()"  # Ordenação padrão
-    )
+    id: Optional[str] = None  # MongoDB ObjectId as string
+    name: str = ""
+    pet_type: PetType = PetType.DOG
+    description: Optional[str] = None
+    organization_id: Optional[str] = None  # Referência à Organization
+    created_at: Optional[datetime] = None
+    
+    # Relacionamentos (carregados quando necessário)
+    organization: Optional['Organization'] = None
+    interest_forms: List['InterestForm'] = field(default_factory=list)

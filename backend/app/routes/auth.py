@@ -17,17 +17,15 @@ async def register(
     """Register a new user."""
     try:
         user_service = UserService(user_repo)
-        existing_user = await user_service.get_user_by_email(user.email)
-        if existing_user:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered",
-            )
+        new_user = await user_service.register_user(user)
 
-        new_user = await user_service.create_user(user)
         return new_user
-    except HTTPException:
-        raise
+    except ValueError as e:
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
     except Exception as e:
         print(str(e))
         raise HTTPException(

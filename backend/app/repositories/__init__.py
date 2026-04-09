@@ -1,7 +1,7 @@
-from .user_repository import IUserRepository, UserRepository
-from .organization_repository import IOrganizationRepository, OrganizationRepository
-from .pet_repository import IPetRepository, PetRepository
-from .interest_form_repository import IInterestFormRepository, InterestFormRepository
+from .user_repository import IUserRepository
+from .organization_repository import IOrganizationRepository
+from .pet_repository import IPetRepository
+from .interest_form_repository import IInterestFormRepository
 from .mongodb_impl import (
     MongoDBUserRepository,
     MongoDBOrganizationRepository,

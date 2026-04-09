@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.core import engine, Base
 from app.core.config import settings
 from app.core.mongodb import close_mongo_connection
 from app.routes import (
@@ -10,9 +9,6 @@ from app.routes import (
     interest_forms_router,
 )
 from app.repositories.factory import RepositoryFactory
-
-# Create tables
-Base.metadata.create_all(bind=engine)
 
 # Configure repository backend
 RepositoryFactory.set_backend(settings.REPOSITORY_BACKEND)

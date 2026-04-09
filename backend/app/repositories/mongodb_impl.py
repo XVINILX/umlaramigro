@@ -127,6 +127,7 @@ class MongoDBUserRepository(IUserRepository):
     async def get_by_email(self, email: str) -> Optional[User]:
         """Obter usuário por email."""
         user = await self.collection.find_one({"email": email})
+        print(f"MongoDBUserRepository.get_by_email: Encontrado usuário para email {email}: {user}")
         if user:
             return _convert_mongo_to_user_wrapper(user)
         return None
@@ -208,7 +209,15 @@ class MongoDBOrganizationRepository(IOrganizationRepository):
     async def get_by_owner(self, owner_id: int) -> List[Organization]:
         """Obter organizações de um proprietário."""
         orgs = []
-        async for org in self.collection.find({"owner_id": owner_id}):
+        
+        cursor = self.collection.find({"owner_id": owner_id})
+        
+        # Debug: verificar o tipo do cursor
+        print(f"Tipo do cursor: {type(cursor)}")
+        print(f"Tem __aiter__? {hasattr(cursor, '__aiter__')}")
+        print(f"É corrotina? {hasattr(cursor, '__await__')}")
+        
+        async for org in cursor:
             orgs.append(_convert_mongo_to_org_wrapper(org))
         return orgs
 
