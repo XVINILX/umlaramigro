@@ -10,6 +10,8 @@ import { CssBaseline, ThemeProvider, createTheme } from "@mui/material";
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import { Provider } from "react-redux";
+import { store } from "./store";
 
 const theme = createTheme({
   palette: {
@@ -63,10 +65,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Outlet />
-    </ThemeProvider>
+    <Provider store={store}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Outlet />
+      </ThemeProvider>
+    </Provider>
   );
 }
 

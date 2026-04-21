@@ -11,7 +11,9 @@ export interface PetBase {
   description?: string;
 }
 
-export interface PetCreate extends PetBase {}
+export interface PetCreate extends PetBase {
+  image?: File;
+}
 
 export interface PetUpdate {
   name?: string;
